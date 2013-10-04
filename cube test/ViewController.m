@@ -7,9 +7,11 @@
 //
 
 #import "ViewController.h"
+#import "FWLinearAlgebra.h"
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #define GL_CHECK_ERROR do {GLenum i = glGetError();if (i) NSLog(@"GL error %i @ %s\n", i, __PRETTY_FUNCTION__); assert(i == 0); } while(0)
+#define GL_CHECK_FRAMEBUFFER do{ GLenum i = glCheckFramebufferStatus(GL_FRAMEBUFFER); if (i != GL_FRAMEBUFFER_COMPLETE) NSLog(@"incomplete frambuffer, status %i", i); assert(i == GL_FRAMEBUFFER_COMPLETE); } while(0)
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -29,8 +31,6 @@ enum
     ATTRIB_NORMAL,
     NUM_ATTRIBUTES
 };
-
-CATransform3D FWMakePerspective(float fov, float aspect, float d1, float d2);
 
 GLfloat gCubeVertexData[216] =
 {
@@ -79,22 +79,10 @@ GLfloat gCubeVertexData[216] =
     -0.5f, 0.5f, -0.5f,        0.0f, 0.0f, -1.0f
 };
 
-CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
-    CATransform3D m = CATransform3DIdentity;
-    m.m11 = fov * aspect;
-    m.m22 = fov * (1-aspect);
-    m.m33 = (f+n)/(f-n);
-    m.m34 = 1;
-    m.m43 = (2.0f*n*f);
-    m.m44 = 0;
-
-    return m;
-}
-
 @interface ViewController () <GLKViewDelegate> {
     GLuint _program;
     
-    GLKMatrix4 _modelViewProjectionMatrix;
+    FWCATransform3D _modelViewProjectionMatrix;
     GLKMatrix3 _normalMatrix;
     float _rotation;
     
@@ -163,7 +151,8 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
 
 - (void)setupGL
 {
-    [EAGLContext setCurrentContext:self.context];
+    assert([NSThread isMainThread]);
+    assert([EAGLContext setCurrentContext:self.context]);
     
     [self loadShaders];
     
@@ -195,7 +184,7 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
 
 - (void)tearDownGL
 {
-    [EAGLContext setCurrentContext:self.context];
+    assert([EAGLContext setCurrentContext:self.context]);
     
     glDeleteBuffers(1, &_vertexBuffer);
     GL_CHECK_ERROR;
@@ -213,31 +202,32 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
 
 - (void)update
 {
+    assert([NSThread isMainThread]);
+
     [self performSelector:@selector(update) withObject:nil afterDelay:FRAME_INTERVAL];
-    //NSLog(@"update");
     float aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
-    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0f), aspect, 0.1f, 100.0f);
-    //CATransform3D projectionMatrix = FWMakePerspective(65.0f / 2*M_PI, aspect, 0.1f, 100.0f);
-    
+    GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(90.0f), aspect, 0.1f, 100.0f);
+
     GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -4.0f);
     baseModelViewMatrix = GLKMatrix4Rotate(baseModelViewMatrix, _rotation, 0.0f, 1.0f, 0.0f);
 
-    GLKMatrix4 modelViewMatrix;
-
     // Compute the model view matrix for the object rendered with ES2
+    GLKMatrix4 modelViewMatrix;
     modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, 1.5f);
     modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
     modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
-    
+
     _normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
-    
-    _modelViewProjectionMatrix = GLKMatrix4Multiply(projectionMatrix, modelViewMatrix);
+    memcpy(_modelViewProjectionMatrix.floatArray , GLKMatrix4Multiply(projectionMatrix, modelViewMatrix).m, sizeof(CGFloat) * 16);
     [(GLKView *)(self.view) display];
     _rotation += 0.1 * 0.5f;
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+    assert([NSThread isMainThread]);
+    GL_CHECK_FRAMEBUFFER;
+
     glClearColor(0.65f, 0.25f, 0.65f, 1.0f);
     GL_CHECK_ERROR;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -250,7 +240,7 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
     glUseProgram(_program);
     GL_CHECK_ERROR;
     
-    glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m);
+    glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.floatArray);
     GL_CHECK_ERROR;
     glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m);
     GL_CHECK_ERROR;
@@ -267,6 +257,7 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
     
     // Create shader program.
     _program = glCreateProgram();
+    GL_CHECK_ERROR;
     
     // Create and compile vertex shader.
     vertShaderPathname = [[NSBundle mainBundle] pathForResource:@"Shader" ofType:@"vsh"];
@@ -284,15 +275,19 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
     
     // Attach vertex shader to program.
     glAttachShader(_program, vertShader);
-    
+    GL_CHECK_ERROR;
+
     // Attach fragment shader to program.
     glAttachShader(_program, fragShader);
-    
+    GL_CHECK_ERROR;
+
     // Bind attribute locations.
     // This needs to be done prior to linking.
     glBindAttribLocation(_program, GLKVertexAttribPosition, "position");
+    GL_CHECK_ERROR;
     glBindAttribLocation(_program, GLKVertexAttribNormal, "normal");
-    
+    GL_CHECK_ERROR;
+
     // Link program.
     if (![self linkProgram:_program]) {
         NSLog(@"Failed to link program: %d", _program);
@@ -315,8 +310,10 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
     
     // Get uniform locations.
     uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(_program, "modelViewProjectionMatrix");
+    GL_CHECK_ERROR;
     uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation(_program, "normalMatrix");
-    
+    GL_CHECK_ERROR;
+
     // Release vertex and fragment shaders.
     if (vertShader) {
         glDetachShader(_program, vertShader);
@@ -342,21 +339,27 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
     }
     
     *shader = glCreateShader(type);
+    GL_CHECK_ERROR;
     glShaderSource(*shader, 1, &source, NULL);
+    GL_CHECK_ERROR;
     glCompileShader(*shader);
-    
+    GL_CHECK_ERROR;
+
 #if defined(DEBUG)
     GLint logLength;
     glGetShaderiv(*shader, GL_INFO_LOG_LENGTH, &logLength);
+    GL_CHECK_ERROR;
     if (logLength > 0) {
         GLchar *log = (GLchar *)malloc(logLength);
         glGetShaderInfoLog(*shader, logLength, &logLength, log);
+        GL_CHECK_ERROR;
         NSLog(@"Shader compile log:\n%s", log);
         free(log);
     }
 #endif
     
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
+    GL_CHECK_ERROR;
     if (status == 0) {
         glDeleteShader(*shader);
         return NO;
@@ -369,10 +372,12 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
 {
     GLint status;
     glLinkProgram(prog);
-    
+    GL_CHECK_ERROR;
+
 #if defined(DEBUG)
     GLint logLength;
     glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLength);
+    GL_CHECK_ERROR;
     if (logLength > 0) {
         GLchar *log = (GLchar *)malloc(logLength);
         glGetProgramInfoLog(prog, logLength, &logLength, log);
@@ -382,6 +387,7 @@ CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
 #endif
     
     glGetProgramiv(prog, GL_LINK_STATUS, &status);
+    GL_CHECK_ERROR;
     if (status == 0) {
         return NO;
     }
