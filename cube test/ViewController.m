@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#define GL_CHECK_ERROR do {GLenum i = glGetError();if (i) NSLog(@"GL error %i @ %s\n", i, __PRETTY_FUNCTION__); assert(i == 0); } while(0)
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -74,7 +75,7 @@ GLfloat gCubeVertexData[216] =
     -0.5f, 0.5f, -0.5f,        0.0f, 0.0f, -1.0f
 };
 
-@interface ViewController () {
+@interface ViewController () <GLKViewDelegate> {
     GLuint _program;
     
     GLKMatrix4 _modelViewProjectionMatrix;
@@ -101,7 +102,7 @@ GLfloat gCubeVertexData[216] =
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     if (!self.context) {
@@ -109,10 +110,13 @@ GLfloat gCubeVertexData[216] =
     }
     
     GLKView *view = (GLKView *)self.view;
+    view.delegate = self;
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    
     [self setupGL];
+
+    // crude emulation of glkviewcontroller's render loop
+    [self performSelector:@selector(update) withObject:nil afterDelay:1.0f];
 }
 
 - (void)dealloc
@@ -153,20 +157,29 @@ GLfloat gCubeVertexData[216] =
     self.effect.light0.diffuseColor = GLKVector4Make(1.0f, 0.4f, 0.4f, 1.0f);
     
     glEnable(GL_DEPTH_TEST);
-    
+    GL_CHECK_ERROR;
     glGenVertexArraysOES(1, &_vertexArray);
+    GL_CHECK_ERROR;
     glBindVertexArrayOES(_vertexArray);
+    GL_CHECK_ERROR;
     
     glGenBuffers(1, &_vertexBuffer);
+    GL_CHECK_ERROR;
     glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
+    GL_CHECK_ERROR;
     glBufferData(GL_ARRAY_BUFFER, sizeof(gCubeVertexData), gCubeVertexData, GL_STATIC_DRAW);
-    
+    GL_CHECK_ERROR;
     glEnableVertexAttribArray(GLKVertexAttribPosition);
+    GL_CHECK_ERROR;
     glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 24, BUFFER_OFFSET(0));
+    GL_CHECK_ERROR;
     glEnableVertexAttribArray(GLKVertexAttribNormal);
+    GL_CHECK_ERROR;
     glVertexAttribPointer(GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 24, BUFFER_OFFSET(12));
+    GL_CHECK_ERROR;
     
     glBindVertexArrayOES(0);
+    GL_CHECK_ERROR;
 }
 
 - (void)tearDownGL
@@ -174,20 +187,25 @@ GLfloat gCubeVertexData[216] =
     [EAGLContext setCurrentContext:self.context];
     
     glDeleteBuffers(1, &_vertexBuffer);
+    GL_CHECK_ERROR;
     glDeleteVertexArraysOES(1, &_vertexArray);
+    GL_CHECK_ERROR;
     
     self.effect = nil;
     
     if (_program) {
         glDeleteProgram(_program);
+        GL_CHECK_ERROR;
         _program = 0;
     }
 }
 
-#pragma mark - GLKView and GLKViewController delegate methods
+
 
 - (void)update
 {
+    [self performSelector:@selector(update) withObject:nil afterDelay:1.0f];
+    NSLog(@"update");
     float aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0f), aspect, 0.1f, 100.0f);
     
@@ -211,29 +229,36 @@ GLfloat gCubeVertexData[216] =
     _normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
     
     _modelViewProjectionMatrix = GLKMatrix4Multiply(projectionMatrix, modelViewMatrix);
-    
-    _rotation += self.timeSinceLastUpdate * 0.5f;
+    [(GLKView *)(self.view) display];
+    _rotation += 0.1 * 0.5f;
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    glClearColor(0.65f, 0.65f, 0.65f, 1.0f);
+    glClearColor(0.65f, 0.25f, 0.65f, 1.0f);
+    GL_CHECK_ERROR;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL_CHECK_ERROR;
     
     glBindVertexArrayOES(_vertexArray);
+    GL_CHECK_ERROR;
     
     // Render the object with GLKit
     [self.effect prepareToDraw];
     
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    GL_CHECK_ERROR;
     
     // Render the object again with ES2
     glUseProgram(_program);
+    GL_CHECK_ERROR;
     
     glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _modelViewProjectionMatrix.m);
+    GL_CHECK_ERROR;
     glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _normalMatrix.m);
-    
+    GL_CHECK_ERROR;
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    GL_CHECK_ERROR;
 }
 
 #pragma mark -  OpenGL ES 2 shader compilation
