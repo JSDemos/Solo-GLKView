@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C1424917571F8252B01A7313 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C14249B414184575A9DFC6B3 /* QuartzCore.framework */; };
 		D801803517FE37E70060753B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D801803417FE37E70060753B /* UIKit.framework */; };
 		D801803717FE37E70060753B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D801803617FE37E70060753B /* Foundation.framework */; };
 		D801803917FE37E70060753B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D801803817FE37E70060753B /* CoreGraphics.framework */; };
@@ -23,9 +24,11 @@
 		D801805617FE37E70060753B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D801805517FE37E70060753B /* ViewController.m */; };
 		D801805917FE37E70060753B /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = D801805717FE37E70060753B /* ViewController_iPhone.xib */; };
 		D801805C17FE37E70060753B /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = D801805A17FE37E70060753B /* ViewController_iPad.xib */; };
+		D801809E17FF33B60060753B /* FWLinearAlgebra.m in Sources */ = {isa = PBXBuildFile; fileRef = D801809D17FF33B60060753B /* FWLinearAlgebra.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C14249B414184575A9DFC6B3 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D801803117FE37E70060753B /* cube test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cube test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D801803417FE37E70060753B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		D801803617FE37E70060753B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -47,6 +50,8 @@
 		D801805517FE37E70060753B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		D801805817FE37E70060753B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
 		D801805B17FE37E70060753B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
+		D801809C17FF33B60060753B /* FWLinearAlgebra.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FWLinearAlgebra.h; sourceTree = "<group>"; };
+		D801809D17FF33B60060753B /* FWLinearAlgebra.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FWLinearAlgebra.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +64,7 @@
 				D801803917FE37E70060753B /* CoreGraphics.framework in Frameworks */,
 				D801803B17FE37E70060753B /* GLKit.framework in Frameworks */,
 				D801803D17FE37E70060753B /* OpenGLES.framework in Frameworks */,
+				C1424917571F8252B01A7313 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +96,7 @@
 				D801803817FE37E70060753B /* CoreGraphics.framework */,
 				D801803A17FE37E70060753B /* GLKit.framework */,
 				D801803C17FE37E70060753B /* OpenGLES.framework */,
+				C14249B414184575A9DFC6B3 /* QuartzCore.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -106,6 +113,8 @@
 				D801805717FE37E70060753B /* ViewController_iPhone.xib */,
 				D801805A17FE37E70060753B /* ViewController_iPad.xib */,
 				D801803F17FE37E70060753B /* Supporting Files */,
+				D801809C17FF33B60060753B /* FWLinearAlgebra.h */,
+				D801809D17FF33B60060753B /* FWLinearAlgebra.m */,
 			);
 			path = "cube test";
 			sourceTree = "<group>";
@@ -196,6 +205,7 @@
 				D801804517FE37E70060753B /* main.m in Sources */,
 				D801804917FE37E70060753B /* AppDelegate.m in Sources */,
 				D801805617FE37E70060753B /* ViewController.m in Sources */,
+				D801809E17FF33B60060753B /* FWLinearAlgebra.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +338,7 @@
 				D801806117FE37E70060753B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

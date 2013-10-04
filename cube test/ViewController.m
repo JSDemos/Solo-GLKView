@@ -7,6 +7,8 @@
 //
 
 #import "ViewController.h"
+#import <OpenGLES/ES2/gl.h>
+#import <OpenGLES/ES2/glext.h>
 #define GL_CHECK_ERROR do {GLenum i = glGetError();if (i) NSLog(@"GL error %i @ %s\n", i, __PRETTY_FUNCTION__); assert(i == 0); } while(0)
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -28,7 +30,9 @@ enum
     NUM_ATTRIBUTES
 };
 
-GLfloat gCubeVertexData[216] = 
+CATransform3D FWMakePerspective(float fov, float aspect, float d1, float d2);
+
+GLfloat gCubeVertexData[216] =
 {
     // Data layout for each line below is:
     // positionX, positionY, positionZ,     normalX, normalY, normalZ,
@@ -75,6 +79,18 @@ GLfloat gCubeVertexData[216] =
     -0.5f, 0.5f, -0.5f,        0.0f, 0.0f, -1.0f
 };
 
+CATransform3D FWMakePerspective(float fov, float aspect, float n, float f) {
+    CATransform3D m = CATransform3DIdentity;
+    m.m11 = fov * aspect;
+    m.m22 = fov * (1-aspect);
+    m.m33 = (f+n)/(f-n);
+    m.m34 = 1;
+    m.m43 = (2.0f*n*f);
+    m.m44 = 0;
+
+    return m;
+}
+
 @interface ViewController () <GLKViewDelegate> {
     GLuint _program;
     
@@ -86,7 +102,6 @@ GLfloat gCubeVertexData[216] =
     GLuint _vertexBuffer;
 }
 @property (strong, nonatomic) EAGLContext *context;
-@property (strong, nonatomic) GLKBaseEffect *effect;
 
 - (void)setupGL;
 - (void)tearDownGL;
@@ -116,7 +131,7 @@ GLfloat gCubeVertexData[216] =
     [self setupGL];
 
     // crude emulation of glkviewcontroller's render loop
-    [self performSelector:@selector(update) withObject:nil afterDelay:1.0f];
+    [self performSelector:@selector(update) withObject:nil afterDelay:FRAME_INTERVAL];
 }
 
 - (void)dealloc
@@ -152,10 +167,6 @@ GLfloat gCubeVertexData[216] =
     
     [self loadShaders];
     
-    self.effect = [[GLKBaseEffect alloc] init];
-    self.effect.light0.enabled = GL_TRUE;
-    self.effect.light0.diffuseColor = GLKVector4Make(1.0f, 0.4f, 0.4f, 1.0f);
-    
     glEnable(GL_DEPTH_TEST);
     GL_CHECK_ERROR;
     glGenVertexArraysOES(1, &_vertexArray);
@@ -190,9 +201,7 @@ GLfloat gCubeVertexData[216] =
     GL_CHECK_ERROR;
     glDeleteVertexArraysOES(1, &_vertexArray);
     GL_CHECK_ERROR;
-    
-    self.effect = nil;
-    
+
     if (_program) {
         glDeleteProgram(_program);
         GL_CHECK_ERROR;
@@ -204,23 +213,17 @@ GLfloat gCubeVertexData[216] =
 
 - (void)update
 {
-    [self performSelector:@selector(update) withObject:nil afterDelay:1.0f];
-    NSLog(@"update");
+    [self performSelector:@selector(update) withObject:nil afterDelay:FRAME_INTERVAL];
+    //NSLog(@"update");
     float aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0f), aspect, 0.1f, 100.0f);
-    
-    self.effect.transform.projectionMatrix = projectionMatrix;
+    //CATransform3D projectionMatrix = FWMakePerspective(65.0f / 2*M_PI, aspect, 0.1f, 100.0f);
     
     GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -4.0f);
     baseModelViewMatrix = GLKMatrix4Rotate(baseModelViewMatrix, _rotation, 0.0f, 1.0f, 0.0f);
-    
-    // Compute the model view matrix for the object rendered with GLKit
-    GLKMatrix4 modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, -1.5f);
-    modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
-    modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
-    
-    self.effect.transform.modelviewMatrix = modelViewMatrix;
-    
+
+    GLKMatrix4 modelViewMatrix;
+
     // Compute the model view matrix for the object rendered with ES2
     modelViewMatrix = GLKMatrix4MakeTranslation(0.0f, 0.0f, 1.5f);
     modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
@@ -242,13 +245,7 @@ GLfloat gCubeVertexData[216] =
     
     glBindVertexArrayOES(_vertexArray);
     GL_CHECK_ERROR;
-    
-    // Render the object with GLKit
-    [self.effect prepareToDraw];
-    
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    GL_CHECK_ERROR;
-    
+
     // Render the object again with ES2
     glUseProgram(_program);
     GL_CHECK_ERROR;
