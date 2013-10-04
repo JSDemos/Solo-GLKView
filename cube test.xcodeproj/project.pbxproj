@@ -25,7 +25,6 @@
 		D801805617FE37E70060753B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D801805517FE37E70060753B /* ViewController.m */; };
 		D801805917FE37E70060753B /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = D801805717FE37E70060753B /* ViewController_iPhone.xib */; };
 		D801805C17FE37E70060753B /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = D801805A17FE37E70060753B /* ViewController_iPad.xib */; };
-		D801809E17FF33B60060753B /* FWLinearAlgebra.m in Sources */ = {isa = PBXBuildFile; fileRef = D801809D17FF33B60060753B /* FWLinearAlgebra.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,8 +52,6 @@
 		D801805517FE37E70060753B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		D801805817FE37E70060753B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
 		D801805B17FE37E70060753B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
-		D801809C17FF33B60060753B /* FWLinearAlgebra.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FWLinearAlgebra.h; sourceTree = "<group>"; };
-		D801809D17FF33B60060753B /* FWLinearAlgebra.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FWLinearAlgebra.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,8 +113,6 @@
 				D801805717FE37E70060753B /* ViewController_iPhone.xib */,
 				D801805A17FE37E70060753B /* ViewController_iPad.xib */,
 				D801803F17FE37E70060753B /* Supporting Files */,
-				D801809C17FF33B60060753B /* FWLinearAlgebra.h */,
-				D801809D17FF33B60060753B /* FWLinearAlgebra.m */,
 				C142415A34DBFE30DC9144D7 /* GLKViewMathUtils.m */,
 				C14248E435044C9744881442 /* GLKViewMathUtils.h */,
 			);
@@ -210,7 +205,6 @@
 				D801804517FE37E70060753B /* main.m in Sources */,
 				D801804917FE37E70060753B /* AppDelegate.m in Sources */,
 				D801805617FE37E70060753B /* ViewController.m in Sources */,
-				D801809E17FF33B60060753B /* FWLinearAlgebra.m in Sources */,
 				C14243E88AEE032CD0AA4977 /* GLKViewMathUtils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -7,13 +7,16 @@
 //
 
 #import "ViewController.h"
-#import "FWLinearAlgebra.h"
-#import <OpenGLES/ES2/gl.h>
-#import <OpenGLES/ES2/glext.h>
 #define GL_CHECK_ERROR do {GLenum i = glGetError();if (i) NSLog(@"GL error %i @ %s\n", i, __PRETTY_FUNCTION__); assert(i == 0); } while(0)
 #define GL_CHECK_FRAMEBUFFER do{ GLenum i = glCheckFramebufferStatus(GL_FRAMEBUFFER); if (i != GL_FRAMEBUFFER_COMPLETE) NSLog(@"incomplete frambuffer, status %i", i); assert(i == GL_FRAMEBUFFER_COMPLETE); } while(0)
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+typedef union {
+    CATransform3D caTransform3D;
+    CGFloat floatArray[16];
+} FWCATransform3D;
+
 
 // Uniform index.
 enum
