@@ -8,6 +8,4 @@
 
 #import <Foundation/Foundation.h>
 
-
-@interface GLKViewMathUtils : NSObject
-@end
+GLKMatrix3 FWGLKMatrix3InvertAndTranspose(GLKMatrix3 matrix, bool *isInvertible);

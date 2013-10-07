@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-static const float FRAME_INTERVAL = 0.1f;
+static const float FRAME_INTERVAL = 1.0f;
 
 @interface ViewController : UIViewController
 

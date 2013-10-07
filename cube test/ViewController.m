@@ -6,7 +6,11 @@
 //  Copyright (c) 2013 nathan ramsey. All rights reserved.
 //
 
+#import <OpenGLES/EAGLDrawable.h>
+#import <QuartzCore/QuartzCore.h>
 #import "ViewController.h"
+#import "GLKViewMathUtils.h"
+
 #define GL_CHECK_ERROR do {GLenum i = glGetError();if (i) NSLog(@"GL error %i @ %s\n", i, __PRETTY_FUNCTION__); assert(i == 0); } while(0)
 #define GL_CHECK_FRAMEBUFFER do{ GLenum i = glCheckFramebufferStatus(GL_FRAMEBUFFER); if (i != GL_FRAMEBUFFER_COMPLETE) NSLog(@"incomplete frambuffer, status %i", i); assert(i == GL_FRAMEBUFFER_COMPLETE); } while(0)
 
@@ -201,12 +205,9 @@ GLfloat gCubeVertexData[216] =
     }
 }
 
-
-
 - (void)update
 {
     assert([NSThread isMainThread]);
-
     [self performSelector:@selector(update) withObject:nil afterDelay:FRAME_INTERVAL];
     float aspect = fabsf(self.view.bounds.size.width / self.view.bounds.size.height);
     GLKMatrix4 projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(90.0f), aspect, 0.1f, 100.0f);
@@ -220,9 +221,14 @@ GLfloat gCubeVertexData[216] =
     modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, _rotation, 1.0f, 1.0f, 1.0f);
     modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix);
 
-    _normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
-    memcpy(_modelViewProjectionMatrix.floatArray , GLKMatrix4Multiply(projectionMatrix, modelViewMatrix).m, sizeof(CGFloat) * 16);
+    _normalMatrix = FWGLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), NULL);
+    memcpy(_modelViewProjectionMatrix.floatArray , GLKMatrix4Multiply(projectionMatrix, modelViewMatrix).m,
+        sizeof(CGFloat) * 16);
+
+    assert([_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:((CAEAGLLayer *) self.view.layer)]);
+    [(GLKView *)self.view bindDrawable];
     [(GLKView *)(self.view) display];
+    assert([_context presentRenderbuffer:0]);
     _rotation += 0.1 * 0.5f;
 }
 

@@ -1,1 +1,2 @@
-proof that glkview works without glkviewcontroller
+Demo project showing GLKView running in absence of GLKViewController on iOS, which does not run on Android via Apportable.
+
